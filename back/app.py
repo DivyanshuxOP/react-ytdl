@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import yt_dlp
 import time
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -41,7 +42,7 @@ def video_info():
 
 @app.route('/api/download', methods=['GET'])
 def download():
-    file_name = "output.webm"
+    file_name = "output.mkv"
     tmp_dir = tempfile.gettempdir()
     file_path = os.path.join(tmp_dir, file_name)
     if os.path.exists(file_path):
@@ -56,38 +57,27 @@ def download():
     print(f"Received itag: {itag}")  # Debugging statement
 
     try:
-        output_video_path = os.path.join(tempfile.gettempdir(), 'output.webm')
+        output_video_path = os.path.join(tempfile.gettempdir(), 'output.mkv')
         ydl_opts = {
-            'format': f'{itag}+bestaudio/best',
-            'outtmpl': output_video_path,
-            'merge_output_format': 'webm',  # Ensure the output format is webm
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'webm'  # Convert to webm after merging
-            }]
+            'format': f'{itag}+bestaudio/best',  # Combine video and audio streams natively
+            'outtmpl': output_video_path, 
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
 
-        return send_file(output_video_path, as_attachment=True)
+        final_file_name = "output.webm"
+        final_file_path = os.path.join(tempfile.gettempdir(), final_file_name)
+
+        if os.path.exists(final_file_path):
+            os.remove(final_file_path)
+
+        os.rename(output_video_path, final_file_path) 
+
+        return send_file(final_file_path, as_attachment=True)
 
     except Exception as e:
         print(f"Error: {e}")
         return {'error': 'Failed to process download request'}, 500
-
-    """
-    finally:
-        retries = 3
-        for _ in range(retries):
-            try:
-                if os.path.exists(output_video_path):
-                    os.remove(output_video_path)
-                break
-            except PermissionError:
-                time.sleep(1)
-        else:
-            print(f"Failed to delete {output_video_path} after {retries} retries.")
-    """
-
+    
 if __name__ == '__main__':
     app.run(debug=True)
