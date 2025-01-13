@@ -1,6 +1,6 @@
 import os
 import tempfile
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import yt_dlp
 import time
@@ -8,6 +8,23 @@ import subprocess
 
 app = Flask(__name__)
 CORS(app)
+
+
+frontend_folder = os.path.join(os.getcwd(),"..", "front")
+dist_folder = os.path.join(frontend_folder, "dist")
+
+@app.route('/', defaults={'filename': ''})
+@app.route('/<path:filename>')
+def index(filename):
+    if not filename:
+        filename = 'index.html'
+    return send_from_directory(dist_folder, filename)
+
+
+
+
+
+
 
 @app.route('/api/video-info', methods=['GET'])
 def video_info():
@@ -82,6 +99,8 @@ def download():
         return {'error': 'Failed to process download request'}, 500
     
     
-    
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
