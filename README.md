@@ -9,3 +9,4 @@ Currently, two official plugins are available:
 "# react-ytdl" 
 "# react-ytdl" 
 "# the-react-yt" 
+"# the-react-yt" 
