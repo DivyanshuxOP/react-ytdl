@@ -91,19 +91,19 @@ function DownloadPage() {
   };
 
   if (!link) {
-    return <p>No video URL provided. Please go back and enter a valid URL.</p>;
+    return <p className="text-white font-semibold text-center pt-[400px] text-2xl">No video URL provided. Please go back and enter a valid URL.</p>;
   }
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <p className="text-white font-semibold text-center pt-[400px] text-2xl font-">Loading...</p>;
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="text-white font-semibold text-center pt-[400px] text-2xl">{error}</p>;
   }
 
   if (!videoInfo) {
-    return <p>Loading video information...</p>;
+    return <p className="text-white font-semibold text-center pt-[400px] text-2xl">Loading video information...</p>;
   }
 
 
@@ -114,31 +114,33 @@ function DownloadPage() {
   }
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="flex bg-p3 rounded-lg shadow-lg overflow-hidden w-3/4 h-3/4 mb-10">
-        <div className="flex-1 p-8 bg-gray-700 pt-[170px]">
+    <div className="flex items-center justify-center md:h-screen md:translate-y-[-37px]">
+      <div className="md:flex bg-1S md:bg-p3 md:rounded-lg shadow-lg md:overflow-hidden w-full h-3/4 md:w-3/4 pb-10 ">
+        <div className="flex-1 p-8 bg-gray-700 pt-[120px] pb-[150px]">
           <img
             src={videoInfo.thumbnail}
             alt="Thumbnail"
-            className="w-full rounded mb-4"
+            className=" rounded md:w-[600px] md:mb-4  shadow-sm"
+            
           />
-          <h1 className="text-white text-xl font-bold">{videoInfo.title}</h1>
-          <p className="text-white mt-2">Duration: {formatDuration(videoInfo.duration)}</p>
+          <h1 className="text-white md:text-xl font-bold pt-5">{videoInfo.title}</h1>
+          <p className="text-white md:mt-2">Duration: {formatDuration(videoInfo.duration)}</p>
+        
         </div>
 
-        <div className="flex-1 p-8 bg-gray-800 pt-[130px]">
-          <h2 className="text-white text-lg font-semibold mb-6 text-center">
+        <div className="flex-1 md:p-8 px-5 py-5 bg-gray-800 md:pt-[130px] mb-4  translate-y-[-100px] md:translate-y-0">
+          <h2 className="text-white md:text-lg font-semibold mb-6 text-center">
             Select Quality
           </h2>
 
-          <div className="mb-4 pt-10">
+          <div className="mb-4 md:pt-10"> 
             <select
               onChange={(e) => {
                 console.log("Selected quality:", e.target.value); // Debugging statement
                 setItag(e.target.value);
               }}
               value={itag}
-              className="w-full p-4 rounded bg-p1 text-white font-bold mb-4"
+              className="w-full p-4 rounded bg-p1 text-white font-bold md-10 md:mb-4"
             >
               <option value="" disabled>
                 Select a quality
@@ -154,7 +156,7 @@ function DownloadPage() {
           <div className="flex items-center justify-center">
             <button
               onClick={handleDownload}
-              className="bg-teal-500 p-4 rounded text-white hover:bg-teal-600"
+              className="bg-p1 p-4 rounded text-white hover:bg-teal-600 mb-[10  0px] md:mb-0"
               disabled={downloading}
             >
               {downloading ? `Downloading... ${progress}%` : "Download"}
