@@ -12,4 +12,20 @@ html, body{
 input::placeholder {
     color: white; /* Change placeholder color */
     opacity: 1;   /* Ensure visibility */
+
 }
+@media (max-width: 768px) {
+    body {
+      overflow-y: scroll;
+
+      
+    }
+    input::placeholder{
+      font-size: medium;
+    }
+
+    #url-name{
+      visibility: hidden;
+    }
+  }
+
