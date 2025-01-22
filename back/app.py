@@ -3,25 +3,24 @@ import tempfile
 from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import yt_dlp
-import time
-import subprocess
 
 app = Flask(__name__)
 CORS(app)
 
+# Define paths
+current_dir = os.getcwd()
+cookies_file_path = os.path.join(current_dir, "cookies.txt")
 
-frontend_folder = os.path.join(os.getcwd(),"..", "front")
+frontend_folder = os.path.join(current_dir, "..", "front")
 dist_folder = os.path.join(frontend_folder, "dist")
+
 
 @app.route('/', defaults={'filename': ''})
 @app.route('/<path:filename>')
 def index(filename):
     if not filename:
-        filename = 'index.html'
+        filename = "index.html"
     return send_from_directory(dist_folder, filename)
-
-
-
 
 
 
@@ -33,8 +32,18 @@ def video_info():
         return jsonify({'error': 'Missing URL parameter'}), 400
 
     try:
-        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+        print(f"Fetching video info for: {video_url}")  # Debugging statement
+        ydl_opts = {
+            'quiet': True,
+            'cookies': './cookies.txt',  # Use the correct cookies file path
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
+            
+            if 'formats' not in info:
+                return jsonify({'error': 'No formats available for this video'}), 400
+            
             unique_formats = {}
             for f in info['formats']:
                 resolution = f"{f.get('height', 'audio only')}p"
@@ -48,6 +57,7 @@ def video_info():
                         'ext': ext,
                     }
             formats = list(unique_formats.values())
+            
             return jsonify({
                 'title': info['title'],
                 'thumbnail': info['thumbnail'],
@@ -55,7 +65,9 @@ def video_info():
                 'formats': formats,
             })
     except Exception as e:
+        print(f"Error fetching video info: {str(e)}")  # Print error for debugging
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/download', methods=['GET'])
 def download():
@@ -69,38 +81,38 @@ def download():
     itag = request.args.get('format')
     
     if not video_url or not itag:
-        return {'error': 'Missing parameters'}, 400
+        return jsonify({'error': 'Missing parameters'}), 400
     
-    print(f"Received itag: {itag}")  # Debugging statement
-
+    print(f"Received video URL: {video_url}")
+    print(f"Received itag: {itag}")
+    
     try:
         output_video_path = os.path.join(tempfile.gettempdir(), 'output.mkv')
         ydl_opts = {
-            'format': f'{itag}+bestaudio/best',  # Combine video and audio streams natively
-            'outtmpl': output_video_path, 
-             'n_threads': 5,
-            
+            'format': f'{itag}+bestaudio/best',  # Combine video and audio streams
+            'outtmpl': output_video_path,
+            'cookies': './cookies.txt',  # Use cookies for restricted content
+            'n_threads': 5,
+         
+           
         }
+    
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
-
+    
         final_file_name = "output.webm"
         final_file_path = os.path.join(tempfile.gettempdir(), final_file_name)
-
+    
         if os.path.exists(final_file_path):
             os.remove(final_file_path)
-
-        os.rename(output_video_path, final_file_path) 
-
+    
+        os.rename(output_video_path, final_file_path)
+    
         return send_file(final_file_path, as_attachment=True)
-
+    
     except Exception as e:
-        print(f"Error: {e}")
-        return {'error': 'Failed to process download request'}, 500
+        print(f"Error during download: {str(e)}")  # Print error for debugging
+        return jsonify({'error': 'Failed to process download request'}), 500
     
-    
-
-
-
 if __name__ == '__main__':
-    app.run(debug=True)
+        app.run(debug=True)
