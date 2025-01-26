@@ -4,8 +4,10 @@ from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import yt_dlp
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_folder=os.path.join("..", "front", "dist"))
 CORS(app)
+
 
 # Define paths
 current_dir = os.getcwd()
@@ -14,14 +16,13 @@ cookies_file_path = os.path.join(current_dir, "cookies.txt")
 frontend_folder = os.path.join(current_dir, "..", "front")
 dist_folder = os.path.join(frontend_folder, "dist")
 
-
-@app.route('/', defaults={'filename': ''})
-@app.route('/<path:filename>')
-def index(filename):
-    if not filename:
-        filename = "index.html"
-    return send_from_directory(dist_folder, filename)
-
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 
@@ -35,7 +36,7 @@ def video_info():
         print(f"Fetching video info for: {video_url}")  # Debugging statement
         ydl_opts = {
             'quiet': True,
-            'cookies': './cookies.txt',  # Use the correct cookies file path
+             # Use the correct cookies file path
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -91,7 +92,6 @@ def download():
         ydl_opts = {
             'format': f'{itag}+bestaudio/best',  # Combine video and audio streams
             'outtmpl': output_video_path,
-            'cookies': './cookies.txt',  # Use cookies for restricted content
             'n_threads': 5,
          
            
